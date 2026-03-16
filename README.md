@@ -1,4 +1,4 @@
-# claude-context-bar
+# Claude: Context Bar
 
 [![CI](https://github.com/matuscvengros/claude-context-bar/actions/workflows/ci.yml/badge.svg)](https://github.com/matuscvengros/claude-context-bar/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/claude-context-bar)](https://www.npmjs.com/package/claude-context-bar)
