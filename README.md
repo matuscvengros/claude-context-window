@@ -1,4 +1,4 @@
-# Claude: Context Bar
+# Claude: Context Window
 
 [![CI](https://github.com/matuscvengros/claude-context-window/actions/workflows/ci.yml/badge.svg)](https://github.com/matuscvengros/claude-context-window/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/claude-context-window)](https://www.npmjs.com/package/claude-context-window)
@@ -10,10 +10,10 @@ Real-time context window usage bar for [Claude Code](https://docs.anthropic.com/
 Shows a colored progress bar in the Claude Code status line that fills up as your context window is consumed.
 
 ```
-Opus 4.6 │ █░░░░░░░░░ 10% │ 100K/1M tokens     ← green
-Opus 4.6 │ █████░░░░░ 50% │ 500K/1M tokens     ← yellow
-Opus 4.6 │ ████████░░ 78% │ 780K/1M tokens     ← orange
-Opus 4.6 │ █████████░ 90% │ 900K/1M tokens     ← red
+Opus 4.6 │ 100K/1M tokens │ █░░░░░░░░░ 10%     ← green
+Opus 4.6 │ 500K/1M tokens │ █████░░░░░ 50%     ← yellow
+Opus 4.6 │ 780K/1M tokens │ ████████░░ 78%     ← orange
+Opus 4.6 │ 900K/1M tokens │ █████████░ 90%     ← red
 ```
 
 ## Install

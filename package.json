@@ -1,6 +1,6 @@
 {
   "name": "claude-context-window",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Real-time context window usage bar for Claude Code",
   "bin": {
     "claude-context-window": "./bin/cli.js"
@@ -27,10 +27,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/matuscvengros/claude-context-bar.git"
+    "url": "git+https://github.com/matuscvengros/claude-context-window.git"
   },
-  "homepage": "https://github.com/matuscvengros/claude-context-bar#readme",
+  "homepage": "https://github.com/matuscvengros/claude-context-window#readme",
   "bugs": {
-    "url": "https://github.com/matuscvengros/claude-context-bar/issues"
+    "url": "https://github.com/matuscvengros/claude-context-window/issues"
   }
 }

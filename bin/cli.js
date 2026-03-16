@@ -88,6 +88,7 @@ async function install() {
   settings.statusLine = {
     type: 'command',
     command: buildCommand(scriptDest),
+    padding: 0,
   };
 
   writeSettings(settingsPath, settings);

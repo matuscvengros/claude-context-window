@@ -1,4 +1,4 @@
-# claude-context-bar Design Spec
+# claude-context-window Design Spec
 
 ## Problem
 
@@ -6,18 +6,20 @@ Claude Code users have no real-time visibility into how much of their context wi
 
 ## Solution
 
-An npm package (`claude-context-bar`) that provides:
+An npm package (`claude-context-window`) that provides:
 1. A **statusline script** that displays context usage as a colored progress bar in Claude Code's TUI footer
 2. An **npx installer/uninstaller** that configures everything automatically
 
 ## Display Format
 
 ```
-Opus 4.6 │ █░░░░░░░░░ 10% │ 100K/1M tokens     ← green
-Opus 4.6 │ █████░░░░░ 50% │ 500K/1M tokens     ← yellow
-Opus 4.6 │ ████████░░ 78% │ 780K/1M tokens     ← orange
-Opus 4.6 │ █████████░ 90% │ 900K/1M tokens     ← red
+Opus 4.6 │ 100K/1M tokens │ █░░░░░░░░░ 10%     ← green
+Opus 4.6 │ 500K/1M tokens │ █████░░░░░ 50%     ← yellow
+Opus 4.6 │ 780K/1M tokens │ ████████░░ 78%     ← orange
+Opus 4.6 │ 900K/1M tokens │ █████████░ 90%     ← red
 ```
+
+Layout: **Model | Tokens | Bar**
 
 The bar represents context **used** (fills up over time):
 - **Green** (`\x1b[32m`): 0–50% used — plenty of room
@@ -29,11 +31,9 @@ Bar: 10 segments using `█` (filled) and `░` (empty). Token counts formatted 
 
 **Note:** The bar shows raw `used_percentage` as reported by Claude Code — no normalization for auto-compaction buffer. This matches what users see from `/context` and avoids reliance on internal thresholds that may change.
 
-**Early session:** Before the first API call, `used_percentage` and `current_usage` may be null. The bar shows a zeroed state: `Model │ ░░░░░░░░░░ 0% │ waiting...`
+**Early session:** Before the first API call, `used_percentage` and `current_usage` may be null. The bar shows a zeroed state: `Model │ waiting... │ ░░░░░░░░░░ 0%`
 
 **Post-compaction:** When auto-compaction triggers, `used_percentage` drops sharply and the bar resets accordingly. This is correct behavior.
-
-**Narrow terminals:** If terminal width is constrained, the display degrades gracefully by dropping the token count portion.
 
 ## Architecture
 
@@ -76,30 +76,30 @@ A self-contained Node.js script (`statusline.js`) with zero dependencies. Target
 
 ### Installer: CLI (`bin/cli.js`)
 
-**`npx claude-context-bar@latest install`**:
+**`npx claude-context-window@latest install`**:
 1. Resolve `~/.claude/` directory, create if absent
-2. Copy `statusline.js` to `~/.claude/claude-context-bar.js`
+2. Copy `statusline.js` to `~/.claude/claude-context-window.js`
 3. Read `~/.claude/settings.json` (create with `{}` if absent)
-4. If `statusLine` already exists and command does NOT contain `claude-context-bar`, warn and prompt to overwrite
-5. Set `statusLine: { type: "command", command: "node <path>/claude-context-bar.js" }`
+4. If `statusLine` already exists and command does NOT contain `claude-context-window`, warn and prompt to overwrite
+5. Set `statusLine: { type: "command", command: "node <path>/claude-context-window.js" }`
    - On Windows: use forward slashes in the command string (Git Bash compatibility)
 6. Write settings back (preserve existing settings, only touch `statusLine`)
-7. Print success: "claude-context-bar installed. Restart Claude Code to activate."
+7. Print success: "claude-context-window installed. Restart Claude Code to activate."
 
-**`npx claude-context-bar@latest uninstall`**:
-1. Remove `~/.claude/claude-context-bar.js` if it exists
+**`npx claude-context-window@latest uninstall`**:
+1. Remove `~/.claude/claude-context-window.js` if it exists
 2. If `~/.claude/settings.json` does not exist, print "nothing to uninstall" and exit cleanly
 3. Read `~/.claude/settings.json`
-4. Remove `statusLine` entry only if command contains `claude-context-bar`
+4. Remove `statusLine` entry only if command contains `claude-context-window`
 5. Write settings back
 6. Print success message
 
-**Detection logic:** A statusLine entry is "ours" if `statusLine.command` contains the string `claude-context-bar`.
+**Detection logic:** A statusLine entry is "ours" if `statusLine.command` contains the string `claude-context-window`.
 
 ## Package Structure
 
 ```
-claude-context-bar/
+claude-context-window/
 ├── bin/
 │   └── cli.js                    # npx entry point
 ├── src/
@@ -146,11 +146,11 @@ In order:
 
 ```json
 {
-  "name": "claude-context-bar",
-  "version": "1.0.0",
+  "name": "claude-context-window",
+  "version": "0.1.0",
   "description": "Real-time context window usage bar for Claude Code",
   "bin": {
-    "claude-context-bar": "./bin/cli.js"
+    "claude-context-window": "./bin/cli.js"
   },
   "scripts": {
     "test": "node --test test/*.test.js"

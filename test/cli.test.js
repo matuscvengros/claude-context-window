@@ -8,7 +8,7 @@ const { execFileSync } = require('child_process');
 const CLI_PATH = path.join(__dirname, '..', 'bin', 'cli.js');
 
 function createTempHome() {
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ccb-test-'));
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ccw-test-'));
   return tmpDir;
 }
 

@@ -47,7 +47,7 @@ function render(data) {
 
   if (usedPct === null) {
     const bar = EMPTY.repeat(BAR_WIDTH);
-    return `${COLOR.dim}${modelName}${SEP}${bar} 0%${SEP}waiting...${COLOR.reset}`;
+    return `${COLOR.dim}${modelName}${SEP}waiting...${SEP}${bar} 0%${COLOR.reset}`;
   }
 
   const clamped = Math.max(0, Math.min(100, usedPct));
@@ -57,7 +57,7 @@ function render(data) {
   const ctxSize = (ctx && ctx.context_window_size) || 200000;
   const usedTokens = Math.round(ctxSize * clamped / 100);
 
-  return `${color}${modelName}${SEP}${bar} ${clamped}%${SEP}${formatTokens(usedTokens)}/${formatTokens(ctxSize)} tokens${COLOR.reset}`;
+  return `${color}${modelName}${SEP}${formatTokens(usedTokens)}/${formatTokens(ctxSize)} tokens${SEP}${bar} ${clamped}%${COLOR.reset}`;
 }
 
 function main() {
