@@ -1,6 +1,10 @@
 # User
 .claude
 .docs
+docs
+
+# Claude
+settings.local.json
 
 node_modules/
 coverage/
