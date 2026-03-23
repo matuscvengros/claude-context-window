@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 'use strict';
 
+const { execFileSync } = require('child_process');
+const os = require('os');
+const path = require('path');
+
 const FILLED = '\u2588';
 const EMPTY = '\u2591';
-const SEP = ' \u2502 ';
 const BAR_WIDTH = 10;
 
 const COLOR = {
@@ -11,6 +14,7 @@ const COLOR = {
   yellow: '\x1b[33m',
   orange: '\x1b[38;5;208m',
   red: '\x1b[31m',
+  cyan: '\x1b[36m',
   dim: '\x1b[2m',
   reset: '\x1b[0m',
 };
@@ -40,14 +44,105 @@ function buildBar(usedPct) {
   return FILLED.repeat(filled) + EMPTY.repeat(empty);
 }
 
-function render(data) {
+function getUsername() {
+  try {
+    return os.userInfo().username;
+  } catch {
+    return '';
+  }
+}
+
+const GIT_OPTS = { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'], timeout: 2000 };
+
+function getGitBranch() {
+  try {
+    const branch = execFileSync('git', ['branch', '--show-current'], GIT_OPTS).trim();
+    if (branch) return branch;
+    // Detached HEAD — show abbreviated commit hash
+    return execFileSync('git', ['rev-parse', '--short', 'HEAD'], GIT_OPTS).trim();
+  } catch {
+    return '';
+  }
+}
+
+function getGitChanges() {
+  try {
+    const staged = execFileSync('git', ['diff', '--cached', '--numstat'], GIT_OPTS).trim();
+    const modified = execFileSync('git', ['diff', '--numstat'], GIT_OPTS).trim();
+    const stagedCount = staged ? staged.split('\n').filter(Boolean).length : 0;
+    const modifiedCount = modified ? modified.split('\n').filter(Boolean).length : 0;
+    return { staged: stagedCount, modified: modifiedCount };
+  } catch {
+    return { staged: 0, modified: 0 };
+  }
+}
+
+function getGitRemoteUrl() {
+  try {
+    let remote = execFileSync('git', ['remote', 'get-url', 'origin'], GIT_OPTS).trim();
+    // ssh://git@host:port/org/repo.git -> https://host/org/repo
+    remote = remote.replace(/^ssh:\/\/git@([^/:]+)(?::\d+)?\/(.+?)(?:\.git)?$/, 'https://$1/$2');
+    // git@host:org/repo.git -> https://host/org/repo
+    remote = remote.replace(/^git@([^:]+):(.+?)(?:\.git)?$/, 'https://$1/$2');
+    // strip trailing .git from https URLs
+    remote = remote.replace(/\.git$/, '');
+    if (!remote.startsWith('http')) return '';
+    return remote;
+  } catch {
+    return '';
+  }
+}
+
+function sanitizeForOSC(str) {
+  return str.replace(/[\x00-\x1f\x7f]/g, '');
+}
+
+function makeOSC8Link(url, text) {
+  return `\x1b]8;;${sanitizeForOSC(url)}\x07${sanitizeForOSC(text)}\x1b]8;;\x07`;
+}
+
+function renderLine1(data) {
+  const username = getUsername();
+  const projectDir = (data && data.workspace && data.workspace.current_dir) || '';
+  const dirName = projectDir ? path.basename(projectDir) : '';
+
+  let line = '';
+
+  if (username) line += `[${COLOR.cyan}${username}${COLOR.reset}]`;
+  if (dirName) line += (line ? ' ' : '') + `[${dirName}]`;
+
+  const remoteUrl = getGitRemoteUrl();
+  const branch = getGitBranch();
+
+  if (remoteUrl) {
+    const repoName = path.basename(remoteUrl);
+    line += (line ? ':' : '') + `[${makeOSC8Link(remoteUrl, repoName)}]`;
+  }
+
+  if (branch) line += `/[${branch}]`;
+
+  const changes = getGitChanges();
+  if (changes.staged > 0 || changes.modified > 0) {
+    let status = '';
+    if (changes.staged > 0) status += `${COLOR.green}+${changes.staged}${COLOR.reset}`;
+    if (changes.staged > 0 && changes.modified > 0) status += ' ';
+    if (changes.modified > 0) status += `${COLOR.yellow}~${changes.modified}${COLOR.reset}`;
+    line += ' ' + `[${status}]`;
+  }
+
+  return line;
+}
+
+function renderLine2(data) {
   const ctx = data && data.context_window;
   const usedPct = ctx && typeof ctx.used_percentage === 'number' ? Math.round(ctx.used_percentage) : null;
   const modelName = (data && data.model && data.model.display_name) || 'Claude';
+  const effort = (data && data.effort) || (data && data.model && data.model.effort) || '';
+  const modelLabel = effort ? `${modelName} (${effort})` : modelName;
 
   if (usedPct === null) {
     const bar = EMPTY.repeat(BAR_WIDTH);
-    return `${COLOR.dim}${modelName}${SEP}waiting...${SEP}${bar} 0%${COLOR.reset}`;
+    return `${COLOR.dim}[${modelLabel}] [waiting...] ${bar} [0%]${COLOR.reset}`;
   }
 
   const clamped = Math.max(0, Math.min(100, usedPct));
@@ -57,7 +152,11 @@ function render(data) {
   const ctxSize = (ctx && ctx.context_window_size) || 200000;
   const usedTokens = Math.round(ctxSize * clamped / 100);
 
-  return `${color}${modelName}${SEP}${formatTokens(usedTokens)}/${formatTokens(ctxSize)} tokens${SEP}${bar} ${clamped}%${COLOR.reset}`;
+  return `${color}[${modelLabel}] [${formatTokens(usedTokens)}/${formatTokens(ctxSize)} tokens] ${bar} [${clamped}%]${COLOR.reset}`;
+}
+
+function renderStatusLine(data) {
+  return renderLine1(data) + '\n' + renderLine2(data);
 }
 
 function main() {
@@ -67,9 +166,9 @@ function main() {
   process.stdin.on('end', () => {
     try {
       const data = JSON.parse(input);
-      process.stdout.write(render(data));
+      process.stdout.write(renderStatusLine(data));
     } catch {
-      process.stdout.write(render(null));
+      process.stdout.write(renderStatusLine(null));
     }
   });
 }
@@ -78,4 +177,17 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { render, buildBar, getColor, formatTokens };
+module.exports = {
+  renderLine1,
+  renderLine2,
+  renderStatusLine,
+  buildBar,
+  getColor,
+  formatTokens,
+  getUsername,
+  getGitBranch,
+  getGitChanges,
+  getGitRemoteUrl,
+  makeOSC8Link,
+  sanitizeForOSC,
+};

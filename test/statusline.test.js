@@ -1,6 +1,19 @@
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
-const { render, buildBar, getColor, formatTokens } = require('../src/statusline.js');
+const {
+  renderLine1,
+  renderLine2,
+  renderStatusLine,
+  buildBar,
+  getColor,
+  formatTokens,
+  getUsername,
+  getGitBranch,
+  getGitChanges,
+  getGitRemoteUrl,
+  makeOSC8Link,
+  sanitizeForOSC,
+} = require('../src/statusline.js');
 
 describe('formatTokens', () => {
   it('formats numbers below 1000', () => {
@@ -99,7 +112,76 @@ describe('buildBar', () => {
   });
 });
 
-describe('render', () => {
+describe('sanitizeForOSC', () => {
+  it('strips control characters', () => {
+    assert.equal(sanitizeForOSC('hello\x07world'), 'helloworld');
+    assert.equal(sanitizeForOSC('test\x1b[31m'), 'test[31m');
+    assert.equal(sanitizeForOSC('line\nbreak'), 'linebreak');
+    assert.equal(sanitizeForOSC('tab\there'), 'tabhere');
+  });
+
+  it('preserves normal text', () => {
+    assert.equal(sanitizeForOSC('https://github.com/user/repo'), 'https://github.com/user/repo');
+  });
+
+  it('handles empty string', () => {
+    assert.equal(sanitizeForOSC(''), '');
+  });
+});
+
+describe('makeOSC8Link', () => {
+  it('wraps text in OSC 8 escape sequences', () => {
+    const link = makeOSC8Link('https://github.com/user/repo', 'repo');
+    assert.equal(link, '\x1b]8;;https://github.com/user/repo\x07repo\x1b]8;;\x07');
+  });
+
+  it('sanitizes control characters in URL and text', () => {
+    const link = makeOSC8Link('https://example.com/\x07evil', 'repo\x1bname');
+    // BEL and ESC should be stripped from the URL and text portions
+    assert.ok(!link.includes('evil') || !link.includes('\x07evil'));
+    assert.ok(link.includes('https://example.com/evil'));
+    assert.ok(link.includes('reponame'));
+  });
+});
+
+describe('getUsername', () => {
+  it('returns a string', () => {
+    const username = getUsername();
+    assert.equal(typeof username, 'string');
+  });
+});
+
+describe('getGitBranch', () => {
+  it('returns a string', () => {
+    const branch = getGitBranch();
+    assert.equal(typeof branch, 'string');
+  });
+
+  it('returns a non-empty value in a git repo (branch or commit hash)', () => {
+    // Works in both normal and detached HEAD (e.g. CI checkout)
+    const branch = getGitBranch();
+    assert.ok(branch.length > 0);
+  });
+});
+
+describe('getGitChanges', () => {
+  it('returns an object with staged and modified counts', () => {
+    const changes = getGitChanges();
+    assert.equal(typeof changes.staged, 'number');
+    assert.equal(typeof changes.modified, 'number');
+    assert.ok(changes.staged >= 0);
+    assert.ok(changes.modified >= 0);
+  });
+});
+
+describe('getGitRemoteUrl', () => {
+  it('returns a string', () => {
+    const url = getGitRemoteUrl();
+    assert.equal(typeof url, 'string');
+  });
+});
+
+describe('renderLine2', () => {
   it('renders normal state with all fields', () => {
     const data = {
       context_window: {
@@ -108,10 +190,10 @@ describe('render', () => {
       },
       model: { display_name: 'Opus 4.6' },
     };
-    const output = render(data);
-    assert.ok(output.includes('Opus 4.6'));
-    assert.ok(output.includes('45%'));
-    assert.ok(output.includes('450K/1M tokens'));
+    const output = renderLine2(data);
+    assert.ok(output.includes('[Opus 4.6]'));
+    assert.ok(output.includes('[45%]'));
+    assert.ok(output.includes('[450K/1M tokens]'));
     assert.ok(output.includes('\x1b[32m')); // green
   });
 
@@ -120,10 +202,10 @@ describe('render', () => {
       context_window: { used_percentage: 60, context_window_size: 200000 },
       model: { display_name: 'Sonnet 4.6' },
     };
-    const output = render(data);
+    const output = renderLine2(data);
     assert.ok(output.includes('\x1b[33m')); // yellow
-    assert.ok(output.includes('60%'));
-    assert.ok(output.includes('120K/200K tokens'));
+    assert.ok(output.includes('[60%]'));
+    assert.ok(output.includes('[120K/200K tokens]'));
   });
 
   it('renders orange at 80%', () => {
@@ -131,7 +213,7 @@ describe('render', () => {
       context_window: { used_percentage: 80, context_window_size: 200000 },
       model: { display_name: 'Haiku' },
     };
-    const output = render(data);
+    const output = renderLine2(data);
     assert.ok(output.includes('\x1b[38;5;208m')); // orange
   });
 
@@ -140,10 +222,10 @@ describe('render', () => {
       context_window: { used_percentage: 95, context_window_size: 1000000 },
       model: { display_name: 'Opus 4.6' },
     };
-    const output = render(data);
+    const output = renderLine2(data);
     assert.ok(output.includes('\x1b[31m')); // red
-    assert.ok(output.includes('95%'));
-    assert.ok(output.includes('950K/1M tokens'));
+    assert.ok(output.includes('[95%]'));
+    assert.ok(output.includes('[950K/1M tokens]'));
   });
 
   it('handles null used_percentage (early session)', () => {
@@ -151,35 +233,35 @@ describe('render', () => {
       context_window: { used_percentage: null },
       model: { display_name: 'Opus 4.6' },
     };
-    const output = render(data);
-    assert.ok(output.includes('0%'));
-    assert.ok(output.includes('waiting...'));
+    const output = renderLine2(data);
+    assert.ok(output.includes('[0%]'));
+    assert.ok(output.includes('[waiting...]'));
   });
 
   it('handles missing context_window', () => {
     const data = { model: { display_name: 'Opus 4.6' } };
-    const output = render(data);
-    assert.ok(output.includes('waiting...'));
+    const output = renderLine2(data);
+    assert.ok(output.includes('[waiting...]'));
   });
 
   it('handles completely empty input', () => {
-    const output = render({});
-    assert.ok(output.includes('Claude'));
-    assert.ok(output.includes('waiting...'));
+    const output = renderLine2({});
+    assert.ok(output.includes('[Claude]'));
+    assert.ok(output.includes('[waiting...]'));
   });
 
   it('handles null input', () => {
-    const output = render(null);
-    assert.ok(output.includes('Claude'));
-    assert.ok(output.includes('waiting...'));
+    const output = renderLine2(null);
+    assert.ok(output.includes('[Claude]'));
+    assert.ok(output.includes('[waiting...]'));
   });
 
   it('defaults model name to Claude', () => {
     const data = {
       context_window: { used_percentage: 50, context_window_size: 200000 },
     };
-    const output = render(data);
-    assert.ok(output.includes('Claude'));
+    const output = renderLine2(data);
+    assert.ok(output.includes('[Claude]'));
   });
 
   it('defaults context_window_size to 200000', () => {
@@ -187,21 +269,150 @@ describe('render', () => {
       context_window: { used_percentage: 50 },
       model: { display_name: 'Test' },
     };
-    const output = render(data);
-    assert.ok(output.includes('100K/200K tokens'));
+    const output = renderLine2(data);
+    assert.ok(output.includes('[100K/200K tokens]'));
   });
 
   it('clamps percentage to 0-100', () => {
-    const over = render({
+    const over = renderLine2({
       context_window: { used_percentage: 150, context_window_size: 100000 },
       model: { display_name: 'Test' },
     });
-    assert.ok(over.includes('100%'));
+    assert.ok(over.includes('[100%]'));
 
-    const under = render({
+    const under = renderLine2({
       context_window: { used_percentage: -10, context_window_size: 100000 },
       model: { display_name: 'Test' },
     });
-    assert.ok(under.includes('0%'));
+    assert.ok(under.includes('[0%]'));
+  });
+
+  it('includes effort when provided at top level', () => {
+    const data = {
+      context_window: { used_percentage: 50, context_window_size: 200000 },
+      model: { display_name: 'Opus 4.6' },
+      effort: 'Medium',
+    };
+    const output = renderLine2(data);
+    assert.ok(output.includes('[Opus 4.6 (Medium)]'));
+  });
+
+  it('includes effort when provided on model', () => {
+    const data = {
+      context_window: { used_percentage: 50, context_window_size: 200000 },
+      model: { display_name: 'Opus 4.6', effort: 'High' },
+    };
+    const output = renderLine2(data);
+    assert.ok(output.includes('[Opus 4.6 (High)]'));
+  });
+
+  it('omits effort when not provided', () => {
+    const data = {
+      context_window: { used_percentage: 50, context_window_size: 200000 },
+      model: { display_name: 'Opus 4.6' },
+    };
+    const output = renderLine2(data);
+    assert.ok(output.includes('[Opus 4.6]'));
+    assert.ok(!output.includes('('));
+  });
+});
+
+describe('renderLine1', () => {
+  it('includes username', () => {
+    const output = renderLine1({});
+    const username = getUsername();
+    if (username) {
+      assert.ok(output.includes(`[${'\x1b[36m'}${username}${'\x1b[0m'}]`));
+    }
+  });
+
+  it('includes project directory basename', () => {
+    const data = {
+      workspace: { current_dir: '/home/user/my-project' },
+    };
+    const output = renderLine1(data);
+    assert.ok(output.includes('[my-project]'));
+  });
+
+  it('handles missing workspace', () => {
+    const output = renderLine1({});
+    // Should not throw, username should still appear
+    assert.equal(typeof output, 'string');
+  });
+
+  it('handles null data', () => {
+    const output = renderLine1(null);
+    assert.equal(typeof output, 'string');
+  });
+
+  it('includes git branch when in a repo', () => {
+    const output = renderLine1({});
+    const branch = getGitBranch();
+    if (branch) {
+      assert.ok(output.includes(`[${branch}]`));
+    }
+  });
+
+  it('includes clickable repo link when remote exists', () => {
+    const output = renderLine1({});
+    const remoteUrl = getGitRemoteUrl();
+    if (remoteUrl) {
+      // Check for OSC 8 escape sequence
+      assert.ok(output.includes('\x1b]8;;'));
+      assert.ok(output.includes('\x07'));
+    }
+  });
+
+  it('uses colon before repo and slash before branch', () => {
+    const output = renderLine1({ workspace: { current_dir: '/home/user/proj' } });
+    const remoteUrl = getGitRemoteUrl();
+    const branch = getGitBranch();
+    if (remoteUrl && branch) {
+      // [proj]:[repo]/[branch]
+      assert.ok(output.includes(']:['));
+      assert.ok(output.includes(']/['));
+    }
+  });
+
+  it('uses space between username and directory', () => {
+    const output = renderLine1({ workspace: { current_dir: '/home/user/proj' } });
+    const username = getUsername();
+    if (username) {
+      assert.ok(output.includes('] [proj]'));
+    }
+  });
+});
+
+describe('renderStatusLine', () => {
+  it('returns two lines separated by newline', () => {
+    const data = {
+      context_window: { used_percentage: 45, context_window_size: 1000000 },
+      model: { display_name: 'Opus 4.6' },
+      workspace: { current_dir: '/home/user/project' },
+    };
+    const output = renderStatusLine(data);
+    const lines = output.split('\n');
+    assert.equal(lines.length, 2);
+  });
+
+  it('line 1 contains project info, line 2 contains context bar', () => {
+    const data = {
+      context_window: { used_percentage: 45, context_window_size: 1000000 },
+      model: { display_name: 'Opus 4.6' },
+      workspace: { current_dir: '/home/user/my-app' },
+    };
+    const output = renderStatusLine(data);
+    const [line1, line2] = output.split('\n');
+    assert.ok(line1.includes('[my-app]'));
+    assert.ok(line2.includes('[Opus 4.6]'));
+    assert.ok(line2.includes('[45%]'));
+  });
+
+  it('handles null data gracefully', () => {
+    const output = renderStatusLine(null);
+    const lines = output.split('\n');
+    assert.equal(lines.length, 2);
+    assert.ok(lines[1].includes('[Claude]'));
+    assert.ok(lines[1].includes('[waiting...]'));
   });
 });
