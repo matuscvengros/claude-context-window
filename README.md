@@ -1,4 +1,4 @@
-# Claude: Context Window
+# Claude Code: Context Window
 
 [![CI](https://github.com/matuscvengros/claude-context-window/actions/workflows/ci.yml/badge.svg)](https://github.com/matuscvengros/claude-context-window/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/claude-context-window)](https://www.npmjs.com/package/claude-context-window)
