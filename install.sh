@@ -3,6 +3,7 @@ set -euo pipefail
 
 # install.sh — Configure claude-context-window status bar in Claude Code settings.
 # Usage: ./install.sh [--force]
+# Running without arguments installs immediately.
 #
 # Copies src/statusline.js to ~/.claude/statusline.js and updates
 # ~/.claude/settings.json with the statusLine command.
@@ -89,16 +90,15 @@ install() {
   printf "\n${DIM}Restart Claude Code to activate.${RESET}\n\n"
 }
 
-case "${1:---help}" in
-  install)   install ;;
+case "${1:-}" in
   --force)   install "--force" ;;
   --help|-h)
-    echo "Usage: $0 [install|--force]"
-    echo "  install    Copy statusline.js and configure settings.json"
+    echo "Usage: $0 [--force]"
     echo "  --force    Overwrite existing statusLine from another tool"
     ;;
+  "")        install ;;
   *)
-    echo "Usage: $0 [install|--force]" >&2
+    echo "Usage: $0 [--force]" >&2
     exit 1
     ;;
 esac

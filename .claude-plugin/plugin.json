@@ -1,7 +1,7 @@
 {
   "name": "claude-context-window",
   "description": "Real-time context window usage bar for Claude Code status line",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": {
     "name": "Matus Cvengros",
     "email": "matus.cvengros@gmail.com"

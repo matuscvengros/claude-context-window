@@ -7,14 +7,14 @@
 
 Real-time context window usage bar for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
 
-Shows a colored progress bar in the Claude Code status line that fills up as your context window is consumed.
+Shows a two-line status bar in Claude Code with project info on the first line and a color-coded context window progress bar on the second.
 
 ```
-Opus 4.6 │ 100K/1M tokens │ █░░░░░░░░░ 10%     ← green
-Opus 4.6 │ 500K/1M tokens │ █████░░░░░ 50%     ← yellow
-Opus 4.6 │ 780K/1M tokens │ ████████░░ 78%     ← orange
-Opus 4.6 │ 900K/1M tokens │ █████████░ 90%     ← red
+[user] [project]:[repo-name]/[main] [+3 ~2]
+[Opus 4.6] [100K/1M tokens] █░░░░░░░░░ [10%]     ← green
 ```
+
+The first line shows the OS username, project directory, a clickable link to the git repo (Cmd/Ctrl+click), branch name, and staged/modified file counts. The second line shows the model (with effort level if available), token usage, and a color-coded progress bar.
 
 ## Installation
 
@@ -25,7 +25,7 @@ There are three ways to install, depending on your setup. Restart Claude Code af
 The quickest way if you just want the status bar. No plugin system needed.
 
 ```sh
-npx claude-context-window@latest install
+npx claude-context-window@latest
 ```
 
 Copies the script to `~/.claude/statusline.js` and configures `~/.claude/settings.json`.
@@ -73,7 +73,7 @@ Copies the script to `~/.claude/statusline.js` and configures `~/.claude/setting
 
 Claude Code's [status line](https://code.claude.com/docs/en/statusline) is a customizable bar at the bottom of the terminal. It runs a shell command after each assistant message, piping JSON session data to stdin. The command's stdout becomes the status bar content.
 
-This tool provides that command: a Node.js script that reads the JSON, extracts context window usage, and outputs a color-coded progress bar with token counts.
+This tool provides that command: a Node.js script that reads the JSON and outputs two lines — project/git info and a color-coded context window progress bar.
 
 **Colors indicate context usage:**
 
