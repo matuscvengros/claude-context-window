@@ -9,6 +9,7 @@ const {
   formatTokens,
   truncateDir,
   getUsername,
+  getHostname,
   getGitBranch,
   getGitChanges,
   getGitRemoteUrl,
@@ -193,6 +194,18 @@ describe('getUsername', () => {
   it('returns a string', () => {
     const username = getUsername();
     assert.equal(typeof username, 'string');
+  });
+});
+
+describe('getHostname', () => {
+  it('returns a string', () => {
+    const hostname = getHostname();
+    assert.equal(typeof hostname, 'string');
+  });
+
+  it('returns a non-empty value', () => {
+    const hostname = getHostname();
+    assert.ok(hostname.length > 0);
   });
 });
 
@@ -394,11 +407,13 @@ describe('renderLine2', () => {
 });
 
 describe('renderLine1', () => {
-  it('includes username', () => {
+  it('includes username with hostname', () => {
     const output = renderLine1({});
     const username = getUsername();
+    const hostname = getHostname();
     if (username) {
-      assert.ok(output.includes(`[${'\x1b[36m'}${username}${'\x1b[0m'}]`));
+      const expected = hostname ? `${username}@${hostname}` : username;
+      assert.ok(output.includes(`[${'\x1b[36m'}${expected}${'\x1b[0m'}]`));
     }
   });
 
@@ -450,11 +465,11 @@ describe('renderLine1', () => {
     }
   });
 
-  it('uses space between username and directory', () => {
+  it('uses colon between username and directory', () => {
     const output = renderLine1({ workspace: { current_dir: '/var/proj' } });
     const username = getUsername();
     if (username) {
-      assert.ok(output.includes('] [/var/proj]'));
+      assert.ok(output.includes(']:[/var/proj]'));
     }
   });
 });

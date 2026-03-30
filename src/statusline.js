@@ -3,7 +3,6 @@
 
 const { execFileSync } = require('child_process');
 const os = require('os');
-const path = require('path');
 
 const FILLED = '\u2588';
 const EMPTY = '\u2591';
@@ -47,6 +46,14 @@ function buildBar(usedPct) {
 function getUsername() {
   try {
     return os.userInfo().username;
+  } catch {
+    return '';
+  }
+}
+
+function getHostname() {
+  try {
+    return os.hostname();
   } catch {
     return '';
   }
@@ -129,13 +136,17 @@ function truncateDir(fullPath) {
 
 function renderLine1(data) {
   const username = getUsername();
+  const hostname = getHostname();
   const projectDir = (data && data.workspace && data.workspace.current_dir) || '';
   const dirLabel = truncateDir(projectDir);
 
   let line = '';
 
-  if (username) line += `[${COLOR.cyan}${username}${COLOR.reset}]`;
-  if (dirLabel) line += (line ? ' ' : '') + `[${dirLabel}]`;
+  if (username) {
+    const userLabel = hostname ? `${username}@${hostname}` : username;
+    line += `[${COLOR.cyan}${userLabel}${COLOR.reset}]`;
+  }
+  if (dirLabel) line += (line ? ':' : '') + `[${dirLabel}]`;
 
   const remoteUrl = getGitRemoteUrl();
   const branch = getGitBranch();
@@ -212,6 +223,7 @@ module.exports = {
   formatTokens,
   truncateDir,
   getUsername,
+  getHostname,
   getGitBranch,
   getGitChanges,
   getGitRemoteUrl,

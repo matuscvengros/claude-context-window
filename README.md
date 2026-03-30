@@ -10,11 +10,11 @@ Real-time context window usage bar for [Claude Code](https://docs.anthropic.com/
 Shows a two-line status bar in Claude Code with project info on the first line and a color-coded context window progress bar on the second.
 
 ```
-[user] [~/my/project]:[owner@repo-name]/[main] [+3 ~2]
+[user@hostname]:[~/my/project]:[owner@repo-name]/[main] [+3 ~2]
 [Opus 4.6] [100K/1M] █░░░░░░░░░ [10%]     ← green
 ```
 
-The first line shows the OS username, project directory (truncated to 3 levels, with `~` for home), a clickable link to the git repo as `owner@repo` (Cmd/Ctrl+click), branch name, and staged/modified file counts. The second line shows the model (with effort level if available), token usage, and a color-coded progress bar.
+The first line shows the OS username with hostname, project directory (truncated to 3 levels, with `~` for home), a clickable link to the git repo as `owner@repo` (Cmd/Ctrl+click), branch name, and staged/modified file counts. The second line shows the model (with effort level if available), token usage, and a color-coded progress bar.
 
 ## Installation
 
