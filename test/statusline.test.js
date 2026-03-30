@@ -11,6 +11,7 @@ const {
   getGitBranch,
   getGitChanges,
   getGitRemoteUrl,
+  getRepoLabel,
   makeOSC8Link,
   sanitizeForOSC,
 } = require('../src/statusline.js');
@@ -181,6 +182,37 @@ describe('getGitRemoteUrl', () => {
   });
 });
 
+describe('getRepoLabel', () => {
+  it('extracts owner@repo from standard GitHub URL', () => {
+    assert.equal(getRepoLabel('https://github.com/owner/repo'), 'owner@repo');
+  });
+
+  it('handles trailing slash', () => {
+    assert.equal(getRepoLabel('https://github.com/owner/repo/'), 'owner@repo');
+  });
+
+  it('uses last two path segments for nested groups', () => {
+    assert.equal(getRepoLabel('https://gitlab.com/group/subgroup/repo'), 'subgroup@repo');
+  });
+
+  it('returns just repo name for single-segment path', () => {
+    assert.equal(getRepoLabel('https://git.company.com/repo'), 'repo');
+  });
+
+  it('does not include hostname as owner', () => {
+    const label = getRepoLabel('https://git.company.com/repo');
+    assert.ok(!label.includes('git.company.com'));
+  });
+
+  it('returns empty string for invalid URL', () => {
+    assert.equal(getRepoLabel('not-a-url'), '');
+  });
+
+  it('returns empty string for empty string', () => {
+    assert.equal(getRepoLabel(''), '');
+  });
+});
+
 describe('renderLine2', () => {
   it('renders normal state with all fields', () => {
     const data = {
@@ -193,7 +225,7 @@ describe('renderLine2', () => {
     const output = renderLine2(data);
     assert.ok(output.includes('[Opus 4.6]'));
     assert.ok(output.includes('[45%]'));
-    assert.ok(output.includes('[450K/1M tokens]'));
+    assert.ok(output.includes('[450K/1M]'));
     assert.ok(output.includes('\x1b[32m')); // green
   });
 
@@ -205,7 +237,7 @@ describe('renderLine2', () => {
     const output = renderLine2(data);
     assert.ok(output.includes('\x1b[33m')); // yellow
     assert.ok(output.includes('[60%]'));
-    assert.ok(output.includes('[120K/200K tokens]'));
+    assert.ok(output.includes('[120K/200K]'));
   });
 
   it('renders orange at 80%', () => {
@@ -225,7 +257,7 @@ describe('renderLine2', () => {
     const output = renderLine2(data);
     assert.ok(output.includes('\x1b[31m')); // red
     assert.ok(output.includes('[95%]'));
-    assert.ok(output.includes('[950K/1M tokens]'));
+    assert.ok(output.includes('[950K/1M]'));
   });
 
   it('handles null used_percentage (early session)', () => {
@@ -270,7 +302,7 @@ describe('renderLine2', () => {
       model: { display_name: 'Test' },
     };
     const output = renderLine2(data);
-    assert.ok(output.includes('[100K/200K tokens]'));
+    assert.ok(output.includes('[100K/200K]'));
   });
 
   it('clamps percentage to 0-100', () => {

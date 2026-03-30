@@ -97,6 +97,17 @@ function sanitizeForOSC(str) {
   return str.replace(/[\x00-\x1f\x7f]/g, '');
 }
 
+function getRepoLabel(remoteUrl) {
+  try {
+    const segments = new URL(remoteUrl).pathname.replace(/^\/|\/$/g, '').split('/').filter(Boolean);
+    const repoName = segments[segments.length - 1] || '';
+    const ownerName = segments.length >= 2 ? segments[segments.length - 2] : '';
+    return ownerName ? `${ownerName}@${repoName}` : repoName;
+  } catch {
+    return '';
+  }
+}
+
 function makeOSC8Link(url, text) {
   return `\x1b]8;;${sanitizeForOSC(url)}\x07${sanitizeForOSC(text)}\x1b]8;;\x07`;
 }
@@ -115,8 +126,8 @@ function renderLine1(data) {
   const branch = getGitBranch();
 
   if (remoteUrl) {
-    const repoName = path.basename(remoteUrl);
-    line += (line ? ':' : '') + `[${makeOSC8Link(remoteUrl, repoName)}]`;
+    const repoLabel = getRepoLabel(remoteUrl);
+    line += (line ? ':' : '') + `[${makeOSC8Link(remoteUrl, repoLabel)}]`;
   }
 
   if (branch) line += `/[${branch}]`;
@@ -152,7 +163,7 @@ function renderLine2(data) {
   const ctxSize = (ctx && ctx.context_window_size) || 200000;
   const usedTokens = Math.round(ctxSize * clamped / 100);
 
-  return `${color}[${modelLabel}] [${formatTokens(usedTokens)}/${formatTokens(ctxSize)} tokens] ${bar} [${clamped}%]${COLOR.reset}`;
+  return `${color}[${modelLabel}] [${formatTokens(usedTokens)}/${formatTokens(ctxSize)}] ${bar} [${clamped}%]${COLOR.reset}`;
 }
 
 function renderStatusLine(data) {
@@ -188,6 +199,7 @@ module.exports = {
   getGitBranch,
   getGitChanges,
   getGitRemoteUrl,
+  getRepoLabel,
   makeOSC8Link,
   sanitizeForOSC,
 };

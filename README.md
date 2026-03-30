@@ -10,64 +10,25 @@ Real-time context window usage bar for [Claude Code](https://docs.anthropic.com/
 Shows a two-line status bar in Claude Code with project info on the first line and a color-coded context window progress bar on the second.
 
 ```
-[user] [project]:[repo-name]/[main] [+3 ~2]
-[Opus 4.6] [100K/1M tokens] █░░░░░░░░░ [10%]     ← green
+[user] [project]:[owner@repo-name]/[main] [+3 ~2]
+[Opus 4.6] [100K/1M] █░░░░░░░░░ [10%]     ← green
 ```
 
-The first line shows the OS username, project directory, a clickable link to the git repo (Cmd/Ctrl+click), branch name, and staged/modified file counts. The second line shows the model (with effort level if available), token usage, and a color-coded progress bar.
+The first line shows the OS username, project directory, a clickable link to the git repo as `owner@repo` (Cmd/Ctrl+click), branch name, and staged/modified file counts. The second line shows the model (with effort level if available), token usage, and a color-coded progress bar.
 
 ## Installation
 
-There are three ways to install, depending on your setup. Restart Claude Code after installing.
-
-### Option 1: npx (standalone)
-
-The quickest way if you just want the status bar. No plugin system needed.
-
 ```sh
-npx claude-context-window@latest
+npx claude-context-window@latest install
 ```
 
-Copies the script to `~/.claude/statusline.js` and configures `~/.claude/settings.json`.
+Copies the script to `~/.claude/statusline.js` and configures `~/.claude/settings.json`. Restart Claude Code to activate.
 
 To remove:
 
 ```sh
 npx claude-context-window@latest uninstall
 ```
-
-### Option 2: Claude Code plugin (from this repo)
-
-Register this repository as a plugin marketplace, then install the plugin:
-
-```sh
-claude plugin marketplace add https://github.com/matuscvengros/claude-context-window
-claude plugin install claude-context-window
-```
-
-Once installed, activate the status line:
-
-```
-/claude-context-window:install
-```
-
-This points the status line directly at the plugin's cached copy of the script — nothing is copied to `~/.claude/`. To remove:
-
-```
-/claude-context-window:uninstall
-```
-
-### Option 3: Shell script (Docker / CI)
-
-For headless environments where there is no interactive Claude Code session. Requires `node` and `jq`.
-
-```sh
-./install.sh
-./install.sh --force   # overwrite existing statusLine from another tool
-./uninstall.sh
-```
-
-Copies the script to `~/.claude/statusline.js` and configures `~/.claude/settings.json`. The script resolves its own location, so it works from any working directory — just call it by its path.
 
 ## How it works
 
@@ -88,13 +49,12 @@ The script has zero dependencies, runs in under 100ms, and handles edge cases gr
 
 ## Ownership detection
 
-All install methods embed a `# claude-context-window` marker comment in the settings.json command string. This allows safe uninstall — the tool only removes its own statusLine entry and will not touch configurations from other tools.
+The installer embeds a `# claude-context-window` marker comment in the settings.json command string. This allows safe uninstall — the tool only removes its own statusLine entry and will not touch configurations from other tools.
 
 ## Requirements
 
 - Node.js >= 18
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
-- `jq` (only for `install.sh` / `uninstall.sh`)
 
 ## License
 
