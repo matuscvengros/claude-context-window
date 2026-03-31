@@ -7,51 +7,62 @@
 
 Just the basics. Everything else is noise.
 
-Real-time context window usage bar for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
+No dependencies. No config files. No build step. One command and you're done.
 
-Shows a two-line status bar in Claude Code with project info on the first line and a color-coded context window progress bar on the second.
+![preview](assets/preview.png)
 
-```
-[user@hostname]:[~/my/project]:[owner@repo-name]/[main] [+3 ~2]
-[Opus 4.6] [100K/1M] █░░░░░░░░░ [10%]     ← green
-```
-
-The first line shows the OS username with hostname, project directory (truncated to 3 levels, with `~` for home), a clickable link to the git repo as `owner@repo` (Cmd/Ctrl+click), branch name, and staged/modified file counts. The second line shows the model (with effort level if available), token usage, and a color-coded progress bar.
-
-## Installation
+## Install
 
 ```sh
 npx claude-statusline-atomic@latest install
 ```
 
-Copies the script to `~/.claude/statusline.js` and configures `~/.claude/settings.json`. Restart Claude Code to activate.
+That's it. Restart Claude Code. You're welcome.
 
-To remove:
+## What you get
+
+A two-line status bar that actually tells you something useful:
+
+```
+[user@hostname]:[~/my/project]:[owner@repo-name]/[main] [+3 ~2]
+[Opus 4.6] [100K/1M] █░░░░░░░░░ [10%]
+```
+
+**Line 1** — who you are, where you are, what branch, what's changed. Repo name is a clickable link (Cmd/Ctrl+click).
+
+**Line 2** — which model, how many tokens burned, and a progress bar that changes color as you fill up:
+
+| Color  | Usage   | Vibe          |
+|--------|---------|---------------|
+| 🟢 Green  | 0–50%   | Plenty of room |
+| 🟡 Yellow | 50–75%  | Getting there  |
+| 🟠 Orange | 75–90%  | Wrap it up     |
+| 🔴 Red    | 90–100% | Living on the edge |
+
+## Why this one
+
+There are other statusline packages out there. Most of them do too much. This one:
+
+- **Zero dependencies** — just Node.js, nothing to install, nothing to break
+- **Fast** — runs in under 100ms, you won't notice it's there
+- **Cross-platform** — tested on Linux, macOS, and Windows (Node 18, 20, 22)
+- **Clean uninstall** — removes only its own config, never touches yours
+
+## How it works
+
+Claude Code's [status line](https://code.claude.com/docs/en/statusline) runs a shell command after each assistant message, piping JSON session data to stdin. The command's stdout becomes the status bar.
+
+This tool provides that command. A single Node.js script reads the JSON, crunches the numbers, and spits out two lines of color-coded info. No daemon, no background process, no magic.
+
+The installer copies the script to `~/.claude/statusline.js` and adds a `statusLine` entry to `~/.claude/settings.json` with a `# claude-statusline-atomic` marker — so uninstall knows what's ours and leaves everything else alone.
+
+## Uninstall
+
+Changed your mind? No hard feelings.
 
 ```sh
 npx claude-statusline-atomic@latest uninstall
 ```
-
-## How it works
-
-Claude Code's [status line](https://code.claude.com/docs/en/statusline) is a customizable bar at the bottom of the terminal. It runs a shell command after each assistant message, piping JSON session data to stdin. The command's stdout becomes the status bar content.
-
-This tool provides that command: a Node.js script that reads the JSON and outputs two lines — project/git info and a color-coded context window progress bar.
-
-**Colors indicate context usage:**
-
-| Color  | Usage   | Meaning       |
-|--------|---------|---------------|
-| Green  | 0–50%   | Plenty of room |
-| Yellow | 50–75%  | Getting there |
-| Orange | 75–90%  | Caution       |
-| Red    | 90–100% | Nearly full   |
-
-The script has zero dependencies, runs in under 100ms, and handles edge cases gracefully (null fields before the first API call, missing data, auto-compaction resets).
-
-## Ownership detection
-
-The installer embeds a `# claude-statusline-atomic` marker comment in the settings.json command string. This allows safe uninstall — the tool only removes its own statusLine entry and will not touch configurations from other tools.
 
 ## Requirements
 
