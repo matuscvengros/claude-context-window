@@ -1,9 +1,9 @@
 {
-  "name": "claude-context-window",
-  "version": "0.3.0",
+  "name": "claude-statusline-atomic",
+  "version": "0.3.1",
   "description": "Real-time context window usage bar for Claude Code",
   "bin": {
-    "claude-context-window": "bin/cli.js"
+    "claude-statusline-atomic": "bin/cli.js"
   },
   "scripts": {
     "test": "node --test test/statusline.test.js test/cli.test.js"
@@ -15,7 +15,7 @@
   "keywords": [
     "claude",
     "claude-code",
-    "context-window",
+    "statusline-atomic",
     "statusline",
     "cli"
   ],
@@ -27,10 +27,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/matuscvengros/claude-context-window.git"
+    "url": "git+https://github.com/matuscvengros/claude-statusline-atomic.git"
   },
-  "homepage": "https://github.com/matuscvengros/claude-context-window#readme",
+  "homepage": "https://github.com/matuscvengros/claude-statusline-atomic#readme",
   "bugs": {
-    "url": "https://github.com/matuscvengros/claude-context-window/issues"
+    "url": "https://github.com/matuscvengros/claude-statusline-atomic/issues"
   }
 }

@@ -1,9 +1,11 @@
-# Claude Code: Context Window
+# Atomic Statusline for Claude Code
 
-[![CI](https://github.com/matuscvengros/claude-context-window/actions/workflows/ci.yml/badge.svg)](https://github.com/matuscvengros/claude-context-window/actions/workflows/ci.yml)
-[![npm version](https://img.shields.io/npm/v/claude-context-window)](https://www.npmjs.com/package/claude-context-window)
-[![Downloads](https://img.shields.io/npm/dm/claude-context-window)](https://www.npmjs.com/package/claude-context-window)
-[![License](https://img.shields.io/npm/l/claude-context-window)](https://github.com/matuscvengros/claude-context-window/blob/main/LICENSE)
+[![CI](https://github.com/matuscvengros/claude-statusline-atomic/actions/workflows/ci.yml/badge.svg)](https://github.com/matuscvengros/claude-statusline-atomic/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/claude-statusline-atomic)](https://www.npmjs.com/package/claude-statusline-atomic)
+[![Downloads](https://img.shields.io/npm/dm/claude-statusline-atomic)](https://www.npmjs.com/package/claude-statusline-atomic)
+[![License](https://img.shields.io/npm/l/claude-statusline-atomic)](https://github.com/matuscvengros/claude-statusline-atomic/blob/main/LICENSE)
+
+Just the basics. Everything else is noise.
 
 Real-time context window usage bar for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
 
@@ -19,7 +21,7 @@ The first line shows the OS username with hostname, project directory (truncated
 ## Installation
 
 ```sh
-npx claude-context-window@latest install
+npx claude-statusline-atomic@latest install
 ```
 
 Copies the script to `~/.claude/statusline.js` and configures `~/.claude/settings.json`. Restart Claude Code to activate.
@@ -27,7 +29,7 @@ Copies the script to `~/.claude/statusline.js` and configures `~/.claude/setting
 To remove:
 
 ```sh
-npx claude-context-window@latest uninstall
+npx claude-statusline-atomic@latest uninstall
 ```
 
 ## How it works
@@ -49,7 +51,7 @@ The script has zero dependencies, runs in under 100ms, and handles edge cases gr
 
 ## Ownership detection
 
-The installer embeds a `# claude-context-window` marker comment in the settings.json command string. This allows safe uninstall — the tool only removes its own statusLine entry and will not touch configurations from other tools.
+The installer embeds a `# claude-statusline-atomic` marker comment in the settings.json command string. This allows safe uninstall — the tool only removes its own statusLine entry and will not touch configurations from other tools.
 
 ## Requirements
 

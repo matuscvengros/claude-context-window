@@ -49,7 +49,7 @@ describe('CLI', () => {
       assert.ok(fs.existsSync(settingsPath), 'settings should exist');
       const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
       assert.equal(settings.statusLine.type, 'command');
-      assert.ok(settings.statusLine.command.includes('claude-context-window'));
+      assert.ok(settings.statusLine.command.includes('claude-statusline-atomic'));
       assert.ok(stdout.includes('installed'));
     });
 
@@ -68,13 +68,13 @@ describe('CLI', () => {
     it('overwrites own previous installation', () => {
       fs.mkdirSync(claudeDir, { recursive: true });
       fs.writeFileSync(settingsPath, JSON.stringify({
-        statusLine: { type: 'command', command: 'node /old/claude-context-window.js' },
+        statusLine: { type: 'command', command: 'node /old/claude-statusline-atomic.js' },
       }));
 
       runCli(['install'], { HOME: tmpHome });
 
       const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-      assert.ok(settings.statusLine.command.includes('claude-context-window'));
+      assert.ok(settings.statusLine.command.includes('claude-statusline-atomic'));
     });
 
     it('copies a working statusline script', () => {
@@ -104,7 +104,7 @@ describe('CLI', () => {
       runCli(['install'], { HOME: tmpHome });
       const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
       assert.ok(settings.statusLine.command.startsWith('node "'), 'command should quote the path');
-      assert.ok(settings.statusLine.command.includes('" # claude-context-window'), 'command should have marker comment');
+      assert.ok(settings.statusLine.command.includes('" # claude-statusline-atomic'), 'command should have marker comment');
     });
 
     it('refuses to overwrite another tool statusLine', () => {
@@ -165,7 +165,7 @@ describe('CLI', () => {
       fs.mkdirSync(claudeDir, { recursive: true });
       fs.writeFileSync(settingsPath, JSON.stringify({
         theme: 'dark',
-        statusLine: { type: 'command', command: 'node /path/claude-context-window.js' },
+        statusLine: { type: 'command', command: 'node /path/claude-statusline-atomic.js' },
       }));
 
       runCli(['uninstall'], { HOME: tmpHome });
@@ -203,12 +203,12 @@ describe('CLI', () => {
       const hooksDir = path.join(claudeDir, 'hooks');
       fs.mkdirSync(hooksDir, { recursive: true });
 
-      const legacyPath = path.join(hooksDir, 'claude-context-window.js');
+      const legacyPath = path.join(hooksDir, 'claude-statusline-atomic.js');
       fs.writeFileSync(legacyPath, '// legacy');
 
       // Also need a settings entry so uninstall reports success
       fs.writeFileSync(settingsPath, JSON.stringify({
-        statusLine: { type: 'command', command: 'node /old/claude-context-window.js' },
+        statusLine: { type: 'command', command: 'node /old/claude-statusline-atomic.js' },
       }));
 
       const { stdout } = runCli(['uninstall'], { HOME: tmpHome });
@@ -222,7 +222,7 @@ describe('CLI', () => {
       // Create main settings and a backup, both with our statusLine
       const ourSettings = {
         theme: 'dark',
-        statusLine: { type: 'command', command: 'node /path/claude-context-window.js' },
+        statusLine: { type: 'command', command: 'node /path/claude-statusline-atomic.js' },
       };
       fs.writeFileSync(settingsPath, JSON.stringify(ourSettings));
 

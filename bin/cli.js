@@ -6,7 +6,7 @@ const path = require('path');
 const os = require('os');
 
 const SCRIPT_NAME = 'statusline.js';
-const MARKER = 'claude-context-window';
+const MARKER = 'claude-statusline-atomic';
 
 const COLOR = {
   green: '\x1b[32m',
@@ -30,7 +30,7 @@ function getSettingsPath() {
 
 function buildCommand(scriptPath) {
   const normalized = scriptPath.replace(/\\/g, '/');
-  return `node "${normalized}" # claude-context-window`;
+  return `node "${normalized}" # claude-statusline-atomic`;
 }
 
 function readSettings(settingsPath) {
@@ -81,7 +81,7 @@ function install() {
 
   writeSettings(settingsPath, settings);
 
-  console.log(`\n${COLOR.green}\u2713 claude-context-window installed${COLOR.reset}`);
+  console.log(`\n${COLOR.green}\u2713 claude-statusline-atomic installed${COLOR.reset}`);
   console.log(`  Script: ${scriptDest}`);
   console.log(`  Config: ${settingsPath}`);
   console.log(`\n${COLOR.dim}Restart Claude Code to activate.${COLOR.reset}\n`);
@@ -111,8 +111,8 @@ function uninstall() {
     removedScript = true;
   }
 
-  // Also remove legacy location (~/.claude/hooks/claude-context-window.js)
-  const legacyDest = path.join(claudeDir, 'hooks', 'claude-context-window.js');
+  // Also remove legacy location (~/.claude/hooks/claude-statusline-atomic.js)
+  const legacyDest = path.join(claudeDir, 'hooks', 'claude-statusline-atomic.js');
   if (fs.existsSync(legacyDest)) {
     fs.unlinkSync(legacyDest);
     removedScript = true;
@@ -139,7 +139,7 @@ function uninstall() {
     return;
   }
 
-  console.log(`\n${COLOR.green}\u2713 claude-context-window uninstalled${COLOR.reset}`);
+  console.log(`\n${COLOR.green}\u2713 claude-statusline-atomic uninstalled${COLOR.reset}`);
   if (removedScript) console.log(`  Removed: ${scriptDest}`);
   if (removedConfig) console.log(`  Cleaned: ${settingsPath}`);
   console.log(`\n${COLOR.dim}Restart Claude Code to deactivate.${COLOR.reset}\n`);
@@ -147,11 +147,11 @@ function uninstall() {
 
 function printUsage() {
   console.log(`
-${COLOR.green}claude-context-window${COLOR.reset} — Real-time context window usage bar for Claude Code
+${COLOR.green}claude-statusline-atomic${COLOR.reset} — Real-time context window usage bar for Claude Code
 
 Usage:
-  npx claude-context-window@latest ${COLOR.dim}install${COLOR.reset}     Install and configure
-  npx claude-context-window@latest ${COLOR.dim}uninstall${COLOR.reset}   Remove and clean up
+  npx claude-statusline-atomic@latest ${COLOR.dim}install${COLOR.reset}     Install and configure
+  npx claude-statusline-atomic@latest ${COLOR.dim}uninstall${COLOR.reset}   Remove and clean up
 `);
 }
 
