@@ -1,6 +1,6 @@
 {
   "name": "claude-statusline-atomic",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "Real-time context window usage bar for Claude Code",
   "bin": {
     "claude-statusline-atomic": "bin/cli.js"
